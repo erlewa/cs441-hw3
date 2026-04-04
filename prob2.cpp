@@ -9,8 +9,14 @@
 #include <vector>
 
 __global__
-void minimum() {
-
+void minimum(size_t n, int max_val, int* d_vec, int* res_vec) {
+  int running_min = max_val; 
+  for (size_t i = 0; i < n; i++) {
+  if (d_vec[i] < running_min) {
+      running_min = d_vec[i];
+    }
+  }
+  res_vec[threadIdx.x] = running_min;
 };
 
 int main() {
@@ -29,7 +35,24 @@ int main() {
   cudaMemcpy(d_vec, vec.data(), vec_size, cudaMemcpyHostToDevice);
   
   // Compute minimum on device 
+  int* d_min;
+  cudaMalloc(&d_min, 8 * sizeof(int));
+  minimum<<<1, 8>>>(n, max_val, d_vec, d_min);
   
+  cudaDeviceSynchronize();
+  
+  std::vector<int> device_minimum(8);
+  cudaMemcpy(device_minimum.data(), d_min, 8 * sizeof(int), cudaMemcpyDeviceToHost);
+  int running_device_min = max_val;
+  for (size_t i = 0; i < device_minimum.size(); i++) {
+    std::cout << "Mimimum from thread " << i << " is " << device_minimum[i] << std::endl;
+    if (device_minimum[i] < running_device_min) {
+      running_device_min = device_minimum[i]; 
+    }
+  }
+  std::cout << "Minimum found on device is: " << running_device_min << std::endl;
+  
+
   // Compute minimum on host
   int running_min = max_val; 
   for (size_t i = 0; i < vec.size(); i++) {
