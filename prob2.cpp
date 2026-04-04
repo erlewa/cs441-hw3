@@ -11,7 +11,8 @@
 __global__
 void minimum(size_t n, int max_val, int* d_vec, int* res_vec) {
   int running_min = max_val; 
-  for (size_t i = 0; i < n; i++) {
+  int chunks = n / 8;
+  for (size_t i = chunks * threadIdx.x; i < chunks * (1 + threadIdx.x); i++) {
   if (d_vec[i] < running_min) {
       running_min = d_vec[i];
     }
