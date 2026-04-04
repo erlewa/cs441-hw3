@@ -3,6 +3,7 @@
 // [ ] Send the results to the host which should then find the overall minimum
 // [ ] Have the host validate this answer by sequentially searching the entire array.
 #include <cstddef>
+#include <ctime>
 #include <iostream>
 #include <ostream>
 #include <stdlib.h>
@@ -25,6 +26,8 @@ int main() {
   size_t n = 8'000'000;
   int max_val = 1'000'000'000;
   std::vector<int> vec(n); 
+  
+  std::srand(std::time(0));
   for (size_t i = 0; i < vec.size(); i++) {
     vec[i] = rand() % max_val;
   }
