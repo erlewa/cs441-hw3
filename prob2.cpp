@@ -1,7 +1,7 @@
 // [X] Host should generate a 8,000,000 element array of random integers from 0 to 1,000,000,000.
-// [ ] Assign 8 threads to find the minimum of their assigned portion, ie thread 0 does 1st 1/8th and so on.
-// [ ] Send the results to the host which should then find the overall minimum
-// [ ] Have the host validate this answer by sequentially searching the entire array.
+// [X] Assign 8 threads to find the minimum of their assigned portion, ie thread 0 does 1st 1/8th and so on.
+// [X] Send the results to the host which should then find the overall minimum
+// [X] Have the host validate this answer by sequentially searching the entire array.
 #include <cstddef>
 #include <ctime>
 #include <iostream>
