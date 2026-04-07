@@ -40,14 +40,14 @@ void drawSpheres(Sphere spheres[], char *red, char *green, char *blue)
     for (int x = 0; x < DIM; x++)
      for (int y = 0; y < DIM; y++)
      {
-	float   ox = (x - DIM/2);
+	float   ox = (x - DIM/2); // Translate coordinate plane so DIM/2, DIM/2 is center
 	float   oy = (y - DIM/2);
 
 	float   r=0, g=0, b=0;
 	float   maxz = -INF;
 	for(int i=0; i<SPHERES; i++)
  	{
-        	float   n;
+        	float   n; // Initialized in hit function
         	float   t = spheres[i].hit( ox, oy, &n );
         	if (t > maxz)
 		{
@@ -59,7 +59,7 @@ void drawSpheres(Sphere spheres[], char *red, char *green, char *blue)
             		maxz = t;
         	}
         }
-    	int offset = x + y * DIM;
+    	int offset = x + (y * DIM); // Current pixel if we treat the screen as a flattened 2D array
     	red[offset] = (char) (r * 255);
     	green[offset] = (char) (g * 255);
     	blue[offset] = (char) (b * 255);
@@ -97,8 +97,27 @@ int main()
         spheres[i].radius = rnd( 200.0f ) + 40;
   }
 
-  drawSpheres(spheres, red, green, blue);
+  // TO-DO: Copy spheres to device
 
+  // Allocate space for red, green, blue on device
+  char* d_red;
+  char* d_blue;
+  char* d_green;
+
+  cudaMalloc(&d_red, DIM*DIM*sizeof(char));
+  cudaMalloc(&d_blue, DIM*DIM*sizeof(char));
+  cudaMalloc(&d_green, DIM*DIM*sizeof(char));
+
+  // TO-DO: Convert to device function
+  drawSpheres(spheres, red, green, blue);
+  cudaDeviceSynchronize();
+
+  // Copy results back to host
+  cudaMemcpy(red, d_red, DIM*DIM*sizeof(char), cudaMemcpyDeviceToHost);
+  cudaMemcpy(blue, d_blue, DIM*DIM*sizeof(char), cudaMemcpyDeviceToHost);
+  cudaMemcpy(green, d_green, DIM*DIM*sizeof(char), cudaMemcpyDeviceToHost);
+  
+  // Does the actual colering based one red, green, blue arrays
   RGBQUAD color;
   for (int i = 0; i < DIM; i++)
   {
