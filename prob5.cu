@@ -115,7 +115,7 @@ int main()
   cudaMalloc(&d_green, c_size); 
 
   // Convert to device function
-  drawSpheres<<<grid(DIM, DIM), 1>>>(d_spheres, d_red, d_green, d_blue);
+  drawSpheres<<<dim3(DIM, DIM), 1>>>(d_spheres, d_red, d_green, d_blue);
   cudaDeviceSynchronize();
 
   // Copy results back to host
@@ -142,6 +142,7 @@ int main()
   free(red);
   free(green);
   free(blue);
+  cudaFree();
 
   return 0;
 }

@@ -71,4 +71,6 @@ int main() {
     sum += res_vec[i];
   }
   std::cout << "Final Sum: " << sum << std::endl;
+
+  cudaFree();
 };

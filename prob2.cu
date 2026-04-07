@@ -65,4 +65,6 @@ int main() {
     }
   }
   std::cout << "Host Minimum: " << running_min << std::endl;
+  
+  cudaFree();
 }
