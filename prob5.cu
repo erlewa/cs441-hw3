@@ -4,6 +4,7 @@
 
 #include "FreeImage.h"
 #include "stdio.h"
+#include <cstddef>
 
 #define DIM 2048
 #define rnd(x) (x * rand() / RAND_MAX)
@@ -73,6 +74,8 @@ int main()
   FIBITMAP * bitmap = FreeImage_Allocate(DIM, DIM, 24);
   srand(time(NULL));
 
+  size_t c_size = DIM*DIM*sizeof(char);
+
   char *red;
   char *green;
   char *blue;
@@ -80,9 +83,9 @@ int main()
   // Dynamically create enough memory for DIM * DIM array of char.
   // By making these dynamic rather than auto (e.g. char red[DIM][DIM])
   // we can make them much bigger since they are allocated off the heap
-  red = (char *) malloc(DIM*DIM*sizeof(char));
-  green = (char *) malloc(DIM*DIM*sizeof(char));
-  blue = (char *) malloc(DIM*DIM*sizeof(char));
+  red = (char *) malloc(c_size);
+  green = (char *) malloc(c_size);
+  blue = (char *) malloc(c_size);
 
   // Create random spheres at different coordinates, colors, radius
   Sphere spheres[SPHERES];
@@ -104,18 +107,18 @@ int main()
   char* d_blue;
   char* d_green;
 
-  cudaMalloc(&d_red, DIM*DIM*sizeof(char));
-  cudaMalloc(&d_blue, DIM*DIM*sizeof(char));
-  cudaMalloc(&d_green, DIM*DIM*sizeof(char));
+  cudaMalloc(&d_red, c_size); 
+  cudaMalloc(&d_blue, c_size); 
+  cudaMalloc(&d_green, c_size); 
 
   // TO-DO: Convert to device function
   drawSpheres(spheres, red, green, blue);
   cudaDeviceSynchronize();
 
   // Copy results back to host
-  cudaMemcpy(red, d_red, DIM*DIM*sizeof(char), cudaMemcpyDeviceToHost);
-  cudaMemcpy(blue, d_blue, DIM*DIM*sizeof(char), cudaMemcpyDeviceToHost);
-  cudaMemcpy(green, d_green, DIM*DIM*sizeof(char), cudaMemcpyDeviceToHost);
+  cudaMemcpy(red, d_red, c_size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(blue, d_blue, c_size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(green, d_green, c_size, cudaMemcpyDeviceToHost);
   
   // Does the actual colering based one red, green, blue arrays
   RGBQUAD color;
