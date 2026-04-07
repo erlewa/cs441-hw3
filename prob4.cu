@@ -44,7 +44,7 @@ void sum_reduction(int* mat, int* out, size_t edge) {
 };
 
 int main() {
-  // Initialize 3x4 Matrix
+  // Initialize Matrix
   size_t edge = 8;
   std::vector<int> mat(edge * edge, 1); 
 

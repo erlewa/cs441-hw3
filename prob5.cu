@@ -16,7 +16,7 @@ struct Sphere {
     float   x,y,z;
     // Tells us if a ray hits the sphere; return the
     // depth of the hit, or -infinity if the ray misses the sphere
-    float hit( float ox, float oy, float *n ) 
+    __device__ float hit( float ox, float oy, float *n ) 
     {
         float dx = ox - x;
         float dy = oy - y;
@@ -36,35 +36,35 @@ struct Sphere {
 // red, green, and blue) and then for each pixel checks if a ray from
 // top down hits one of the randomly generated spheres.
 // If so, calculate a shade of color based on where the ray hits it.
+__global__
 void drawSpheres(Sphere spheres[], char *red, char *green, char *blue)
 {
-    for (int x = 0; x < DIM; x++)
-     for (int y = 0; y < DIM; y++)
-     {
-	float   ox = (x - DIM/2); // Translate coordinate plane so DIM/2, DIM/2 is center
-	float   oy = (y - DIM/2);
+  int x = blockIdx.x;
+  int y = blockIdx.y;
+  
+  float   ox = (x - DIM/2); // Translate coordinate plane so DIM/2, DIM/2 is center
+  float   oy = (y - DIM/2);
 
-	float   r=0, g=0, b=0;
-	float   maxz = -INF;
-	for(int i=0; i<SPHERES; i++)
- 	{
-        	float   n; // Initialized in hit function
-        	float   t = spheres[i].hit( ox, oy, &n );
-        	if (t > maxz)
-		{
-			// Scale RGB color based on z depth of sphere
-            		float fscale = n;
-            		r = spheres[i].r * fscale;
-            		g = spheres[i].g * fscale;
-            		b = spheres[i].b * fscale;
-            		maxz = t;
-        	}
-        }
-    	int offset = x + (y * DIM); // Current pixel if we treat the screen as a flattened 2D array
-    	red[offset] = (char) (r * 255);
-    	green[offset] = (char) (g * 255);
-    	blue[offset] = (char) (b * 255);
-    }
+  float   r=0, g=0, b=0;
+  float   maxz = -INF;
+  for(int i=0; i<SPHERES; i++)
+  {
+          float   n; // Initialized in hit function
+          float   t = spheres[i].hit( ox, oy, &n );
+          if (t > maxz)
+          {
+                  // Scale RGB color based on z depth of sphere
+                  float fscale = n;
+                  r = spheres[i].r * fscale;
+                  g = spheres[i].g * fscale;
+                  b = spheres[i].b * fscale;
+                  maxz = t;
+          }
+  }
+  int offset = x + (y * DIM); // Current pixel if we treat the screen as a flattened 2D array
+  red[offset] = (char) (r * 255);
+  green[offset] = (char) (g * 255);
+  blue[offset] = (char) (b * 255);
 }
 
 int main()
@@ -100,7 +100,10 @@ int main()
         spheres[i].radius = rnd( 200.0f ) + 40;
   }
 
-  // TO-DO: Copy spheres to device
+  // Copy spheres to device
+  Sphere* d_spheres;
+  cudaMalloc(&d_spheres, SPHERES * sizeof(Sphere)); 
+  cudaMemcpy(d_spheres, spheres, SPHERES * sizeof(Sphere), cudaMemcpyHostToDevice);
 
   // Allocate space for red, green, blue on device
   char* d_red;
@@ -111,8 +114,8 @@ int main()
   cudaMalloc(&d_blue, c_size); 
   cudaMalloc(&d_green, c_size); 
 
-  // TO-DO: Convert to device function
-  drawSpheres(spheres, red, green, blue);
+  // Convert to device function
+  drawSpheres<<<grid(DIM, DIM), 1>>>(d_spheres, d_red, d_green, d_blue);
   cudaDeviceSynchronize();
 
   // Copy results back to host
