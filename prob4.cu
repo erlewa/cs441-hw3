@@ -72,5 +72,6 @@ int main() {
   }
   std::cout << "Final Sum: " << sum << std::endl;
 
-  cudaFree();
+  cudaFree(d_mat);
+  cudaFree(d_out);
 };

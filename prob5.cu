@@ -142,7 +142,10 @@ int main()
   free(red);
   free(green);
   free(blue);
-  cudaFree();
+  cudaFree(d_spheres);
+  cudaFree(d_red);
+  cudaFree(d_blue);
+  cudaFree(d_green);
 
   return 0;
 }
